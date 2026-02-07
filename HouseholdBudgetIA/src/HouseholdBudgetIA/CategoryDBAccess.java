@@ -4,6 +4,8 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.util.ArrayList;
+import java.util.List;
 
 /*
  CategoryDBAccess
@@ -120,6 +122,57 @@ public class CategoryDBAccess {
             return false;
         }
     }
+    public List<CategoryItem> getCategoriesForUser(int userID) {
+
+    List<CategoryItem> categories = new ArrayList<>();
+    String sql = "SELECT categoryID, categoryName FROM category WHERE userID = ?";
+
+    try (
+        Connection conn = DBManager.getDBConnection();
+        PreparedStatement stmt = conn.prepareStatement(sql)
+    ) {
+        stmt.setInt(1, userID);
+
+        ResultSet rs = stmt.executeQuery();
+        while (rs.next()) {
+            categories.add(
+                new CategoryItem(
+                    rs.getInt("categoryID"),
+                    rs.getString("categoryName")
+                )
+            );
+        }
+
+    } catch (SQLException e) {
+        System.out.println("Get categories failed: " + e.getMessage());
+    }
+
+    return categories;
+}
+    
+    public int getCategoryIDByName(String categoryName, int userID) {
+
+    String sql = "SELECT categoryID FROM category WHERE categoryName = ? AND userID = ?";
+
+    try (
+        Connection conn = DBManager.getDBConnection();
+        PreparedStatement stmt = conn.prepareStatement(sql)
+    ) {
+        stmt.setString(1, categoryName);
+        stmt.setInt(2, userID);
+
+        ResultSet rs = stmt.executeQuery();
+        if (rs.next()) {
+            return rs.getInt("categoryID");
+        }
+
+    } catch (SQLException e) {
+        System.out.println("Get category ID failed: " + e.getMessage());
+    }
+
+    return -1; // not found
+}
+
 
     /*
       main
