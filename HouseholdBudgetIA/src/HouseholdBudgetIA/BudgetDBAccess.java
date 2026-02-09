@@ -124,6 +124,67 @@ public class BudgetDBAccess {
             return false;
         }
     }
+public boolean upsertBudget(int month, int year, double amount, int userID) {
+
+    String checkSql = "SELECT budgetID FROM budget WHERE month = ? AND year = ? AND userID = ?";
+    String insertSql = "INSERT INTO budget (month, year, amount, userID) VALUES (?, ?, ?, ?)";
+    String updateSql = "UPDATE budget SET amount = ? WHERE budgetID = ?";
+
+    try (Connection conn = DBManager.getDBConnection();
+         PreparedStatement checkStmt = conn.prepareStatement(checkSql)) {
+
+        checkStmt.setInt(1, month);
+        checkStmt.setInt(2, year);
+        checkStmt.setInt(3, userID);
+
+        ResultSet rs = checkStmt.executeQuery();
+
+        if (rs.next()) {
+            int budgetID = rs.getInt("budgetID");
+            try (PreparedStatement updateStmt = conn.prepareStatement(updateSql)) {
+                updateStmt.setDouble(1, amount);
+                updateStmt.setInt(2, budgetID);
+                updateStmt.executeUpdate();
+            }
+        } else {
+            try (PreparedStatement insertStmt = conn.prepareStatement(insertSql)) {
+                insertStmt.setInt(1, month);
+                insertStmt.setInt(2, year);
+                insertStmt.setDouble(3, amount);
+                insertStmt.setInt(4, userID);
+                insertStmt.executeUpdate();
+            }
+        }
+
+        return true;
+
+    } catch (SQLException e) {
+        e.printStackTrace();
+        return false;
+    }
+}
+public Double getBudgetAmount(int month, int year, int userID) {
+
+    String sql = "SELECT amount FROM budget WHERE month = ? AND year = ? AND userID = ?";
+
+    try (Connection conn = DBManager.getDBConnection();
+         PreparedStatement stmt = conn.prepareStatement(sql)) {
+
+        stmt.setInt(1, month);
+        stmt.setInt(2, year);
+        stmt.setInt(3, userID);
+
+        ResultSet rs = stmt.executeQuery();
+        if (rs.next()) {
+            return rs.getDouble("amount");
+        }
+
+    } catch (SQLException e) {
+        e.printStackTrace();
+    }
+
+    return null;
+}
 
     /*
       main
