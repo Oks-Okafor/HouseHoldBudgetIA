@@ -91,8 +91,8 @@ public class DashboardGUI extends JFrame
     {
       // This will work once you create SummaryGUI.
       // For now it shows a message instead of crashing.
-      JOptionPane.showMessageDialog(this, "SummaryGUI not added yet.");
-      // Later: new SummaryGUI();
+      dispose();
+     new SummaryGUI();
     });
 
     logoutBtn.addActionListener(e ->
