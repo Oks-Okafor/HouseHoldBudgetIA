@@ -87,11 +87,52 @@ public class UserDBAccess {
             return false;
         }
     }
+public int loginUser(String username, String password) {
+
+    String sql = "SELECT userID FROM users WHERE username = ? AND password = ?";
+
+    try (
+        Connection conn = DBManager.getDBConnection();
+        PreparedStatement stmt = conn.prepareStatement(sql)
+    ) {
+        stmt.setString(1, username);
+        stmt.setString(2, password);
+
+        ResultSet rs = stmt.executeQuery();
+        if (rs.next()) {
+            return rs.getInt("userID");
+        }
+
+    } catch (SQLException e) {
+        System.out.println("Login failed: " + e.getMessage());
+    }
+
+    return -1; // login failed
+}
+public boolean insertUser(String username, String password) {
+
+    String sql = "INSERT INTO users (username, password) VALUES (?, ?)";
+
+    try (
+        Connection conn = DBManager.getDBConnection();
+        PreparedStatement stmt = conn.prepareStatement(sql)
+    ) {
+        stmt.setString(1, username);
+        stmt.setString(2, password);
+
+        stmt.executeUpdate();
+        return true;
+
+    } catch (SQLException e) {
+        System.out.println("Insert user failed: " + e.getMessage());
+        return false;
+    }
+}
 
     // Test all methods in this class
     public static void main(String[] args) {
 
-        // Ensure database and tables exist
+        // Ensure database and tables  exist
         DBManager.initialize();
 
         UserDBAccess userDB = new UserDBAccess();
