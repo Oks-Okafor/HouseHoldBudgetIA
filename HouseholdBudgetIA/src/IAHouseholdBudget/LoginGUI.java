@@ -2,6 +2,7 @@ package IAHouseholdBudget;
 
 import HouseholdBudgetIA.DashboardGUI;
 import HouseholdBudgetIA.SignupGUI;
+import com.sun.jdi.connect.spi.Connection;
 import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.FlowLayout;
@@ -111,6 +112,31 @@ private void handleLogin()
         JOptionPane.showMessageDialog(this, "Invalid username or password");
     }
 }
+public int loginUser(String username, String password)
+{
+    String sql = "SELECT userID FROM users WHERE username = ? AND password = ?";
+
+    try (Connection conn = DBManager.getDBConnection();
+         PreparedStatement stmt = conn.prepareStatement(sql))
+    {
+        stmt.setString(1, username);
+        stmt.setString(2, password);
+
+        ResultSet rs = stmt.executeQuery();
+
+        if (rs.next())
+        {
+            return rs.getInt("userID");
+        }
+
+    } catch (SQLException e)
+    {
+        System.out.println("Login failed: " + e.getMessage());
+    }
+
+    return 0;
+}
+
 public static void main(String[] args)
 {
     DBManager.initialize();

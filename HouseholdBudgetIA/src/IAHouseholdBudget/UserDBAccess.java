@@ -13,24 +13,7 @@ import java.sql.SQLException;
 public class UserDBAccess {
 
     // Insert a new user into the database
-    public boolean insertUser(String username, String password, String email) {
-        String sql = "INSERT INTO users (username, password, email) VALUES (?, ?, ?)";
 
-        try (Connection conn = DBManager.getDBConnection();
-             PreparedStatement stmt = conn.prepareStatement(sql)) {
-
-            stmt.setString(1, username);
-            stmt.setString(2, password);
-            stmt.setString(3, email);
-
-            stmt.executeUpdate();
-            return true;
-
-        } catch (SQLException e) {
-            System.out.println("Insert user failed: " + e.getMessage());
-            return false;
-        }
-    }
 
     // View all users in the database
     public void viewUsers() {
@@ -88,6 +71,51 @@ public class UserDBAccess {
             return false;
         }
     }
+// Login method for validating user credentials
+public int loginUser(String username, String password)
+{
+    String sql = "SELECT userID FROM users WHERE username = ? AND password = ?";
+
+    try (Connection conn = DBManager.getDBConnection();
+         PreparedStatement stmt = conn.prepareStatement(sql))
+    {
+        stmt.setString(1, username);
+        stmt.setString(2, password);
+
+        ResultSet rs = stmt.executeQuery();
+
+        if (rs.next())
+        {
+            return rs.getInt("userID");
+        }
+
+    } catch (SQLException e)
+    {
+        System.out.println("Login failed: " + e.getMessage());
+    }
+
+    return 0; // login failed
+}
+public boolean insertUser(String username, String password, String email)
+{
+    String sql = "INSERT INTO users (username, password, email) VALUES (?, ?, ?)";
+
+    try (Connection conn = DBManager.getDBConnection();
+         PreparedStatement stmt = conn.prepareStatement(sql))
+    {
+        stmt.setString(1, username);
+        stmt.setString(2, password);
+        stmt.setString(3, email);
+
+        stmt.executeUpdate();
+        return true;
+
+    } catch (SQLException e)
+    {
+        System.out.println("Insert user failed: " + e.getMessage());
+        return false;
+    }
+}
 
     // Test all methods in this class
     public static void main(String[] args) {
