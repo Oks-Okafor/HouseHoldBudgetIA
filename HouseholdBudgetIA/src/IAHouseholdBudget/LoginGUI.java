@@ -1,6 +1,6 @@
 package IAHouseholdBudget;
 
-import HouseholdBudgetIA.DashboardGUI;
+import IAHouseholdBudget.DashboardGUI;
 import HouseholdBudgetIA.SignupGUI;
 import com.sun.jdi.connect.spi.Connection;
 import java.awt.BorderLayout;

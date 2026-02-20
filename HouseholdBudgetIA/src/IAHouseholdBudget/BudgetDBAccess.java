@@ -5,6 +5,7 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.util.ArrayList;
 
 /*
  BudgetDBAccess
@@ -125,6 +126,60 @@ public class BudgetDBAccess {
             return false;
         }
     }
+public double getBudgetForMonth(int userID, int month, int year)
+{
+    String sql = "SELECT amount FROM budget WHERE userID = ? AND month = ? AND year = ?";
+
+    try (Connection conn = DBManager.getDBConnection();
+         PreparedStatement stmt = conn.prepareStatement(sql))
+    {
+        stmt.setInt(1, userID);
+        stmt.setInt(2, month);
+        stmt.setInt(3, year);
+
+        ResultSet rs = stmt.executeQuery();
+
+        if (rs.next())
+        {
+            return rs.getDouble("amount");
+        }
+
+    } catch (SQLException e)
+    {
+        System.out.println("Get budget failed: " + e.getMessage());
+    }
+
+    return 0;
+}
+public ArrayList<String[]> getCategoriesByUser(int userID)
+{
+    ArrayList<String[]> list = new ArrayList<>();
+
+    String sql = "SELECT categoryID, categoryName FROM category WHERE userID = ?";
+
+    try (Connection conn = DBManager.getDBConnection();
+         PreparedStatement stmt = conn.prepareStatement(sql))
+    {
+        stmt.setInt(1, userID);
+        ResultSet rs = stmt.executeQuery();
+
+        while (rs.next())
+        {
+            String[] row = {
+                String.valueOf(rs.getInt("categoryID")),
+                rs.getString("categoryName")
+            };
+
+            list.add(row);
+        }
+
+    } catch (SQLException e)
+    {
+        System.out.println("Get categories failed: " + e.getMessage());
+    }
+
+    return list;
+}
 
     /*
       main

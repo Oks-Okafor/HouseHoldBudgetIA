@@ -134,6 +134,31 @@ public class ExpenseDBAccess {
             return false;
         }
     }
+public double getTotalExpensesForMonth(int userID, int month, int year)
+{
+    String sql = "SELECT SUM(amount) AS total FROM expense WHERE userID = ? AND month = ? AND year = ?";
+
+    try (Connection conn = DBManager.getDBConnection();
+         PreparedStatement stmt = conn.prepareStatement(sql))
+    {
+        stmt.setInt(1, userID);
+        stmt.setInt(2, month);
+        stmt.setInt(3, year);
+
+        ResultSet rs = stmt.executeQuery();
+
+        if (rs.next())
+        {
+            return rs.getDouble("total");
+        }
+
+    } catch (SQLException e)
+    {
+        System.out.println("Get expenses failed: " + e.getMessage());
+    }
+
+    return 0;
+}
 
     /*
       main

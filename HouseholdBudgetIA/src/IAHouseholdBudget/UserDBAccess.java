@@ -116,6 +116,28 @@ public boolean insertUser(String username, String password, String email)
         return false;
     }
 }
+public String getUsernameByID(int userID)
+{
+    String sql = "SELECT username FROM users WHERE userID = ?";
+
+    try (Connection conn = DBManager.getDBConnection();
+         PreparedStatement stmt = conn.prepareStatement(sql))
+    {
+        stmt.setInt(1, userID);
+        ResultSet rs = stmt.executeQuery();
+
+        if (rs.next())
+        {
+            return rs.getString("username");
+        }
+
+    } catch (SQLException e)
+    {
+        System.out.println("Get username failed: " + e.getMessage());
+    }
+
+    return "";
+}
 
     // Test all methods in this class
     public static void main(String[] args) {

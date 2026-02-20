@@ -5,6 +5,7 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.util.ArrayList;
 
 /*
  CategoryDBAccess
@@ -121,6 +122,35 @@ public class CategoryDBAccess {
             return false;
         }
     }
+public ArrayList<String[]> getCategoriesByUser(int userID)
+{
+    ArrayList<String[]> list = new ArrayList<>();
+
+    String sql = "SELECT categoryID, categoryName FROM category WHERE userID = ?";
+
+    try (Connection conn = DBManager.getDBConnection();
+         PreparedStatement stmt = conn.prepareStatement(sql))
+    {
+        stmt.setInt(1, userID);
+        ResultSet rs = stmt.executeQuery();
+
+        while (rs.next())
+        {
+            String[] row = {
+                String.valueOf(rs.getInt("categoryID")),
+                rs.getString("categoryName")
+            };
+
+            list.add(row);
+        }
+
+    } catch (SQLException e)
+    {
+        System.out.println("Get categories failed: " + e.getMessage());
+    }
+
+    return list;
+}
 
     /*
       main
