@@ -1,10 +1,10 @@
 package IAHouseholdBudget;
 
-import HouseholdBudgetIA.DBManager;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.util.ArrayList; 
 
 /*
  ExpenseDBAccess
@@ -158,6 +158,76 @@ public double getTotalExpensesForMonth(int userID, int month, int year)
     }
 
     return 0;
+}
+public boolean insertExpense(String note, double amount, int userID, int categoryID)
+{
+    String sql = "INSERT INTO expense (note, amount, expenseDate, month, year, userID, categoryID) " +
+                 "VALUES (?, ?, CURDATE(), MONTH(CURDATE()), YEAR(CURDATE()), ?, ?)";
+
+    try (Connection conn = DBManager.getDBConnection();
+         PreparedStatement stmt = conn.prepareStatement(sql))
+    {
+        stmt.setString(1, note);
+        stmt.setDouble(2, amount);
+        stmt.setInt(3, userID);
+        stmt.setInt(4, categoryID);
+
+        stmt.executeUpdate();
+        return true;
+    }
+    catch (SQLException e)
+    {
+        System.out.println("Insert expense failed: " + e.getMessage());
+        return false;
+    }
+}
+public ArrayList<String[]> getExpensesByUser(int userID)
+{
+    ArrayList<String[]> list = new ArrayList<>();
+
+    String sql = "SELECT expenseID, note, amount FROM expense WHERE userID=?";
+
+    try (Connection conn = DBManager.getDBConnection();
+         PreparedStatement stmt = conn.prepareStatement(sql))
+    {
+        stmt.setInt(1, userID);
+        ResultSet rs = stmt.executeQuery();
+
+        while (rs.next())
+        {
+            String[] row =
+            {
+                String.valueOf(rs.getInt("expenseID")),
+                rs.getString("note"),
+                String.valueOf(rs.getDouble("amount"))
+            };
+
+            list.add(row);
+        }
+    }
+    catch (SQLException e)
+    {
+        System.out.println("Get expenses failed: " + e.getMessage());
+    }
+
+    return list;
+}
+public boolean deleteExpense(int expenseID)
+{
+    String sql = "DELETE FROM expense WHERE expenseID=?";
+
+    try (Connection conn = DBManager.getDBConnection();
+         PreparedStatement stmt = conn.prepareStatement(sql))
+    {
+        stmt.setInt(1, expenseID);
+        stmt.executeUpdate();
+        return true;
+    }
+    catch (SQLException e)
+    {
+        System.out.println("Delete expense failed: " + e.getMessage());
+        return false;
+    }
 }
 
     /*
