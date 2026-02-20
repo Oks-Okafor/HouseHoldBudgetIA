@@ -133,7 +133,8 @@ public class DashboardGUI extends JFrame implements ActionListener
     }
     else if (command.equals("Expenses"))
     {
-      JOptionPane.showMessageDialog(this, "Expense screen coming next.");
+      this.dispose();
+      new ExpenseGUI(currentUserID).setVisible(true);
     }
     else if (command.equals("Logout"))
     {

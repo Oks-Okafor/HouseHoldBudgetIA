@@ -180,6 +180,73 @@ public ArrayList<String[]> getCategoriesByUser(int userID)
 
     return list;
 }
+public boolean upsertBudget(int userID, int month, int year, double amount)
+{
+    String checkSQL = "SELECT budgetID FROM budget WHERE userID=? AND month=? AND year=?";
+    String insertSQL = "INSERT INTO budget (userID, month, year, amount) VALUES (?, ?, ?, ?)";
+    String updateSQL = "UPDATE budget SET amount=? WHERE userID=? AND month=? AND year=?";
+
+    try (Connection conn = DBManager.getDBConnection())
+    {
+        PreparedStatement checkStmt = conn.prepareStatement(checkSQL);
+        checkStmt.setInt(1, userID);
+        checkStmt.setInt(2, month);
+        checkStmt.setInt(3, year);
+
+        ResultSet rs = checkStmt.executeQuery();
+
+        if (rs.next())
+        {
+            PreparedStatement updateStmt = conn.prepareStatement(updateSQL);
+            updateStmt.setDouble(1, amount);
+            updateStmt.setInt(2, userID);
+            updateStmt.setInt(3, month);
+            updateStmt.setInt(4, year);
+            updateStmt.executeUpdate();
+        }
+        else
+        {
+            PreparedStatement insertStmt = conn.prepareStatement(insertSQL);
+            insertStmt.setInt(1, userID);
+            insertStmt.setInt(2, month);
+            insertStmt.setInt(3, year);
+            insertStmt.setDouble(4, amount);
+            insertStmt.executeUpdate();
+        }
+
+        return true;
+    }
+    catch (SQLException e)
+    {
+        System.out.println("Budget upsert failed: " + e.getMessage());
+        return false;
+    }
+}
+public double getBudgetAmount(int userID, int month, int year)
+{
+    String sql = "SELECT amount FROM budget WHERE userID=? AND month=? AND year=?";
+
+    try (Connection conn = DBManager.getDBConnection();
+         PreparedStatement stmt = conn.prepareStatement(sql))
+    {
+        stmt.setInt(1, userID);
+        stmt.setInt(2, month);
+        stmt.setInt(3, year);
+
+        ResultSet rs = stmt.executeQuery();
+
+        if (rs.next())
+        {
+            return rs.getDouble("amount");
+        }
+    }
+    catch (SQLException e)
+    {
+        System.out.println("Get budget failed: " + e.getMessage());
+    }
+
+    return 0;
+}
 
     /*
       main
