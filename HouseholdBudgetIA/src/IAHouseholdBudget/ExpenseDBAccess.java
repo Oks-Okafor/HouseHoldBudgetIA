@@ -110,30 +110,7 @@ public class ExpenseDBAccess {
         }
     }
 
-    /*
-     deleteExpense
-         Removes an expense record from the database using its ID.
-     */
-    public boolean deleteExpense(int expenseID) {
-
-        String sql = "DELETE FROM expense WHERE expenseID = ?";
-
-        try (
-            Connection conn = DBManager.getDBConnection();
-            PreparedStatement stmt = conn.prepareStatement(sql)
-        ) {
-            // Set the expense ID to be deleted
-            stmt.setInt(1, expenseID);
-
-            // Execute DELETE command
-            stmt.executeUpdate();
-            return true;
-
-        } catch (SQLException e) {
-            System.out.println("Delete expense failed: " + e.getMessage());
-            return false;
-        }
-    }
+ 
 public double getTotalExpensesForMonth(int userID, int month, int year)
 {
     String sql = "SELECT SUM(amount) AS total FROM expense WHERE userID = ? AND month = ? AND year = ?";
