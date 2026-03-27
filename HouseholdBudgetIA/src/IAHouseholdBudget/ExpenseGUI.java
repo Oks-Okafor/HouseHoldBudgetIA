@@ -2,6 +2,10 @@ package IAHouseholdBudget;
 
 import java.awt.*;
 import java.awt.event.*;
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
 import java.util.ArrayList;
 import javax.swing.*;
 
@@ -13,11 +17,13 @@ public class ExpenseGUI extends JFrame implements ActionListener
 
     private JTextField nameField;
     private JTextField amountField;
+    private JTextField dateField;
     private JComboBox<String> categoryBox;
 
     private DefaultListModel<String> listModel;
     private JList<String> expenseList;
 
+    
     public ExpenseGUI(int userID)
     {
         super("Expenses");
@@ -26,7 +32,7 @@ public class ExpenseGUI extends JFrame implements ActionListener
         expenseDB = new ExpenseDBAccess();
         categoryDB = new CategoryDBAccess();
 
-        this.setSize(750, 550);
+        this.setSize(750, 750);
         this.setLocationRelativeTo(null);
         this.setDefaultCloseOperation(EXIT_ON_CLOSE);
         this.setLayout(new BorderLayout());
@@ -48,7 +54,7 @@ public class ExpenseGUI extends JFrame implements ActionListener
 
         nameField = new JTextField(12);
         amountField = new JTextField(6);
-
+dateField = new JTextField(6);
         categoryBox = new JComboBox<>();
         loadCategories();
 
@@ -62,6 +68,8 @@ public class ExpenseGUI extends JFrame implements ActionListener
         inputPanel.add(new JLabel("Amount:"));
         inputPanel.add(amountField);
         inputPanel.add(new JLabel("Category:"));
+        inputPanel.add(new JLabel("Date:"));
+         inputPanel.add(dateField);
         inputPanel.add(categoryBox);
         inputPanel.add(addBtn);
         inputPanel.add(viewBtn);
@@ -112,7 +120,7 @@ public class ExpenseGUI extends JFrame implements ActionListener
         }
         else if(cmd.equals("View"))
         {
-            refreshExpenses();
+            viewExpenses();
         }
         else if(cmd.equals("Delete"))
         {
@@ -163,4 +171,37 @@ public class ExpenseGUI extends JFrame implements ActionListener
             listModel.addElement(row[0] + " - " + row[1] + " ($" + row[2] + ")");
         }
     }
+   public void viewExpenses() {
+
+        String sql = "SELECT * FROM expense";
+
+        try (
+            Connection conn = DBManager.getDBConnection();
+            PreparedStatement stmt = conn.prepareStatement(sql);
+            ResultSet rs = stmt.executeQuery()
+        ) {
+            // Loop through each row in the result set
+            JOptionPane.showMessageDialog(this,  rs.getInt("expenseID") + " | " +
+                    "Amount: " + rs.getDouble("amount") + " | " +
+                    "Date: " + rs.getDate("expenseDate") + " | " +
+                    "Note: " + rs.getString("note") + " | " +
+                    "Month: " + rs.getInt("month") + " | " +
+                    "Year: " + rs.getInt("year") + " | " +
+                    "User ID: " + rs.getInt("userID") + " | " +
+                    "Category ID: " + rs.getInt("categoryID")
+                );
+                           
+        } catch (SQLException e) {
+            System.out.println("View expenses failed: " + e.getMessage());
+        }
+               this.dispose();
+        new ExpenseGUI(1).setVisible(true);
+    }
+ public static void main(String[] args)
+  {
+    DBManager.initialize();
+    new ExpenseGUI(1).setVisible(true);
+  }
 }
+
+  
