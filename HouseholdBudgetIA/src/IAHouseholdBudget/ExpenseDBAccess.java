@@ -207,6 +207,44 @@ public boolean deleteExpense(int expenseID)
     }
 }
 
+public String[] getExpenseDetails(int expenseID)
+{
+    // SQL query to get expense details + category name using a JOIN
+    String sql = "SELECT e.note, e.expenseDate, e.amount, c.categoryName " +
+                 "FROM expense e " +                 // alias 'e' represents expense table optimized with Chatgpt
+                 "JOIN category c ON e.categoryID = c.categoryID " + // connect expense to category  alias 'c' represents category table optimized with Chatgpt
+                 "WHERE e.expenseID = ?";            // only get the selected expense
+
+    // try-with-resources automatically closes connection and statement
+    try (Connection conn = DBManager.getDBConnection();   // connect to database
+         PreparedStatement stmt = conn.prepareStatement(sql)) // prepare SQL query safely
+    {
+        stmt.setInt(1, expenseID); // replace ? with actual expenseID
+
+        ResultSet rs = stmt.executeQuery(); // run the query and store results
+
+        // check if a result was found
+        if (rs.next())
+        {
+            // store the result values into an array
+            String[] details = {
+                rs.getString("note"),           // get expense name (note)
+                rs.getString("expenseDate"),    // get date
+                String.valueOf(rs.getDouble("amount")), // get amount and convert to String
+                rs.getString("categoryName")    // get category name from joined table
+            };
+
+            return details; // return the details back to GUI
+        }
+    }
+    catch (SQLException e) // catch any database errors
+    {
+        System.out.println("Get expense details failed: " + e.getMessage()); // print error
+    }
+
+    return null; // return null if no result found
+}
+
     /*
       main
 

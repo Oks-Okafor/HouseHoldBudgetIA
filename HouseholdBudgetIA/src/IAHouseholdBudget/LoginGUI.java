@@ -30,7 +30,7 @@ public static final Color LIGHT_BLUE_BG = new Color(235, 245, 255);
 public static final Color DARK_BLUE = new Color(20, 60, 120);
 public LoginGUI(){
   super("Household Budget - Login");
-this.setSize(550, 400);
+this.setSize(1920, 760);
 this.setLocationRelativeTo(null);
 this.setDefaultCloseOperation(EXIT_ON_CLOSE);
 this.setLayout(new BorderLayout());

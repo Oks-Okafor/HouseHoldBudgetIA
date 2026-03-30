@@ -171,32 +171,43 @@ dateField = new JTextField(6);
             listModel.addElement(row[0] + " - " + row[1] + " ($" + row[2] + ")");
         }
     }
-   public void viewExpenses() {
+public void viewExpenses()
+{
+    String selected = expenseList.getSelectedValue(); 
+    // get the selected item from the list
 
-        String sql = "SELECT * FROM expense";
-
-        try (
-            Connection conn = DBManager.getDBConnection();
-            PreparedStatement stmt = conn.prepareStatement(sql);
-            ResultSet rs = stmt.executeQuery()
-        ) {
-            // Loop through each row in the result set
-            JOptionPane.showMessageDialog(this,  rs.getInt("expenseID") + " | " +
-                    "Amount: " + rs.getDouble("amount") + " | " +
-                    "Date: " + rs.getDate("expenseDate") + " | " +
-                    "Note: " + rs.getString("note") + " | " +
-                    "Month: " + rs.getInt("month") + " | " +
-                    "Year: " + rs.getInt("year") + " | " +
-                    "User ID: " + rs.getInt("userID") + " | " +
-                    "Category ID: " + rs.getInt("categoryID")
-                );
-                           
-        } catch (SQLException e) {
-            System.out.println("View expenses failed: " + e.getMessage());
-        }
-               this.dispose();
-        new ExpenseGUI(1).setVisible(true);
+    if (selected == null)
+    {
+        JOptionPane.showMessageDialog(this, "Select an expense first."); 
+        // show message if nothing is selected
+        return; 
+        // stop method
     }
+
+    int expenseID = Integer.parseInt(selected.split(" - ")[0]); 
+    // extract expense ID from selected list item
+
+    String[] details = expenseDB.getExpenseDetails(expenseID); 
+    // get full expense details from database
+
+    if (details != null)
+    {
+        ExpenseDetailsGUI detailsGUI = new ExpenseDetailsGUI(
+            details[0], // expense name
+            details[1], // expense date
+            details[2], // expense amount
+            details[3]  // category name
+        );
+
+        detailsGUI.setVisible(true); 
+        // show the popup window
+    }
+    else
+    {
+        JOptionPane.showMessageDialog(this, "Could not load expense details."); 
+        // show error if expense was not found
+    }
+}
  public static void main(String[] args)
   {
     DBManager.initialize();
