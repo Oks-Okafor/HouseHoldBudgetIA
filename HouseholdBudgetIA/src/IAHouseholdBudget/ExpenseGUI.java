@@ -54,8 +54,7 @@ public class ExpenseGUI extends JFrame implements ActionListener
 
         nameField = new JTextField(12);
         amountField = new JTextField(6);
-dateField = new JTextField(6);
-        categoryBox = new JComboBox<>();
+       categoryBox = new JComboBox<>();
         loadCategories();
 
         JButton addBtn = createButton("Add");
@@ -69,8 +68,7 @@ dateField = new JTextField(6);
         inputPanel.add(amountField);
         inputPanel.add(new JLabel("Category:"));
         inputPanel.add(new JLabel("Date:"));
-         inputPanel.add(dateField);
-        inputPanel.add(categoryBox);
+                inputPanel.add(categoryBox);
         inputPanel.add(addBtn);
         inputPanel.add(viewBtn);
         inputPanel.add(deleteBtn);
