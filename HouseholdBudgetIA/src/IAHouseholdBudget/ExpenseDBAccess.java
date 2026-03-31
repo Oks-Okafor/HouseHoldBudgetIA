@@ -14,45 +14,7 @@ import java.util.ArrayList;
  */
 public class ExpenseDBAccess {
 
-    /*
-     insertExpense
-         Adds a new expense record into the database.
-     */
-    public boolean insertExpense(double amount, String expenseDate, String note,
-                                 int month, int year, int userID, int categoryID) {
-
-        // SQL statement to insert a new expense
-        String sql = "INSERT INTO expense " +
-                     "(amount, expenseDate, note, month, year, userID, categoryID) " +
-                     "VALUES (?, ?, ?, ?, ?, ?, ?)";
-
-        try (
-            // Connect to the IA database
-            Connection conn = DBManager.getDBConnection();
-
-            // Prepare SQL statement
-            PreparedStatement stmt = conn.prepareStatement(sql)
-        ) {
-            // Assign values to the placeholders
-            stmt.setDouble(1, amount);
-            stmt.setString(2, expenseDate); // format: YYYY-MM-DD
-            stmt.setString(3, note);
-            stmt.setInt(4, month);
-            stmt.setInt(5, year);
-            stmt.setInt(6, userID);
-            stmt.setInt(7, categoryID);
-
-            // Execute INSERT command
-            stmt.executeUpdate();
-            return true;
-
-        } catch (SQLException e) {
-            System.out.println("Insert expense failed: " + e.getMessage());
-            return false;
-        }
-    }
-
-    /*
+       /*
      viewExpenses
          Retrieves and displays all expense records from the database.
      */
