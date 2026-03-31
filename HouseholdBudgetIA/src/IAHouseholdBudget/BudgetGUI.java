@@ -15,7 +15,7 @@ public class BudgetGUI extends JFrame implements ActionListener
     private JTextField amountField;
 
     private JButton saveButton;
-    private JButton viewButton;
+    private JButton adjustButton;
     private JButton backButton;
 
     private JLabel resultLabel;
@@ -71,11 +71,11 @@ public class BudgetGUI extends JFrame implements ActionListener
         buttonPanel.setOpaque(false);
 
         saveButton = createButton("Save Budget");
-        viewButton = createButton("View Budget");
+        adjustButton = createButton("Adjust Budget");
         backButton = createButton("Back");
 
         buttonPanel.add(saveButton);
-        buttonPanel.add(viewButton);
+        buttonPanel.add(adjustButton);
         buttonPanel.add(backButton);
 
         background.add(buttonPanel, BorderLayout.SOUTH);
@@ -102,7 +102,7 @@ public class BudgetGUI extends JFrame implements ActionListener
         {
             handleSave();
         }
-        else if(command.equals("View Budget"))
+        else if(command.equals("Adjust Budget"))
         {
             handleView();
         }
@@ -120,9 +120,11 @@ public class BudgetGUI extends JFrame implements ActionListener
         double amount = Double.parseDouble(amountField.getText());
 
         budgetDB.upsertBudget(currentUserID, month, year, amount);
-
-        resultLabel.setText("Budget saved.");
-    }
+ JOptionPane.showMessageDialog(this, "Budget saved successfully"); 
+        // show message if nothing is selected
+        return; 
+        // stop method
+           }
 
     private void handleView()
     {
@@ -134,3 +136,4 @@ public class BudgetGUI extends JFrame implements ActionListener
         resultLabel.setText("Budget: $" + amount);
     }
 }
+
