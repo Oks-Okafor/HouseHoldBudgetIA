@@ -131,20 +131,42 @@ public class ExpenseGUI extends JFrame implements ActionListener
         }
     }
 
-    private void handleAdd()
+   private void handleAdd()
+{
+    String note = nameField.getText(); // get expense name from input field
+    double amount = Double.parseDouble(amountField.getText()); // convert amount to double
+    
+    String selected = (String) categoryBox.getSelectedItem(); // get selected category
+    int categoryID = Integer.parseInt(selected.split(" - ")[0]); // extract category ID from selected item
+    
+    expenseDB.insertExpense(note, amount, currentUserID, categoryID); // save expense (date auto-generated in DB)
+    
+    java.time.LocalDate today = java.time.LocalDate.now(); // get current date
+    int month = today.getMonthValue(); // extract current month
+    int year = today.getYear(); // extract current year
+    
+    double budget = new BudgetDBAccess().getBudgetForMonth(currentUserID, month, year); // get monthly budget
+    double expenses = expenseDB.getTotalExpensesForMonth(currentUserID, month, year); // get total expenses for month
+    if (budget > 0) // check if budget exists
     {
-        String name = nameField.getText();
-        double amount = Double.parseDouble(amountField.getText());
-
-        String selected = (String) categoryBox.getSelectedItem();
-        int categoryID = Integer.parseInt(selected.split(" - ")[0]);
-
-        expenseDB.insertExpense(name, amount, currentUserID, categoryID);
-
-        nameField.setText("");
-        amountField.setText("");
-        refreshExpenses();
+        if (Math.abs(expenses - budget) < 0.01) // check if budget is exactly reached
+        {
+            JOptionPane.showMessageDialog(this, "You have reached your budget."); // show reached message
+        }
+        else if (expenses > budget) // check if budget exceeded
+        {
+            JOptionPane.showMessageDialog(this, "Alert: You have exceeded your budget!"); // show exceeded message
+        }
+        else if (expenses >= 0.8 * budget) // check if close to budget (80%)
+        {
+            JOptionPane.showMessageDialog(this, "Warning: You are close to your budget limit!"); // show warning
+        }
     }
+
+    nameField.setText(""); // clear name field
+    amountField.setText(""); // clear amount field
+    refreshExpenses(); // update expense list display
+}
 
     private void handleDelete()
     {

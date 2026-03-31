@@ -62,6 +62,7 @@ public class DashboardGUI extends JFrame implements ActionListener
     double budget = budgetDB.getBudgetForMonth(currentUserID, month, year);
     double expenses = expenseDB.getTotalExpensesForMonth(currentUserID, month, year);
     double remaining = budget - expenses;
+    
 
     summaryPanel.add(createCard("Monthly Budget", budget));
     summaryPanel.add(createCard("Total Expenses", expenses));
