@@ -128,12 +128,7 @@ public class BudgetGUI extends JFrame implements ActionListener
 
     private void handleView()
     {
-        int month = Integer.parseInt(monthField.getText());
-        int year = Integer.parseInt(yearField.getText());
-
-        double amount = budgetDB.getBudgetAmount(currentUserID, month, year);
-
-        resultLabel.setText("Budget: $" + amount);
+         new AdjustChoiceGUI(currentUserID).setVisible(true);
     }
 }
 
