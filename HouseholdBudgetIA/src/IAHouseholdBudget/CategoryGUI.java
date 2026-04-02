@@ -1,24 +1,10 @@
 package IAHouseholdBudget;
 
-import java.awt.BorderLayout;
-import java.awt.Color;
-import java.awt.Font;
+import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.util.ArrayList;
-import javax.swing.BorderFactory;
-import javax.swing.JButton;
-import javax.swing.JFrame;
-import javax.swing.JLabel;
-import javax.swing.JList;
-import javax.swing.JOptionPane;
-import javax.swing.JPanel;
-import javax.swing.JScrollPane;
-import javax.swing.JTextField;
-import javax.swing.ListSelectionModel;
-import javax.swing.DefaultListModel;
-import javax.swing.SwingConstants;
-import java.awt.FlowLayout;
+import javax.swing.*;
 
 public class CategoryGUI extends JFrame implements ActionListener
 {
@@ -28,6 +14,8 @@ public class CategoryGUI extends JFrame implements ActionListener
     private JTextField categoryField;
     private JList<String> categoryList;
     private DefaultListModel<String> listModel;
+
+    private ArrayList<String[]> currentCategories;
 
     private JButton addButton;
     private JButton viewButton;
@@ -40,6 +28,7 @@ public class CategoryGUI extends JFrame implements ActionListener
 
         this.currentUserID = userID;
         this.categoryDB = new CategoryDBAccess();
+        this.currentCategories = new ArrayList<String[]>();
 
         this.setSize(700, 550);
         this.setLocationRelativeTo(null);
@@ -76,8 +65,8 @@ public class CategoryGUI extends JFrame implements ActionListener
 
         centerPanel.add(topPanel, BorderLayout.NORTH);
 
-        listModel = new DefaultListModel<>();
-        categoryList = new JList<>(listModel);
+        listModel = new DefaultListModel<String>();
+        categoryList = new JList<String>(listModel);
         categoryList.setFont(new Font("SansSerif", Font.PLAIN, 15));
         categoryList.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
 
@@ -120,7 +109,7 @@ public class CategoryGUI extends JFrame implements ActionListener
         }
         else if (command.equals("View"))
         {
-            handleView();
+            refreshCategories();
         }
         else if (command.equals("Delete"))
         {
@@ -156,49 +145,40 @@ public class CategoryGUI extends JFrame implements ActionListener
         }
     }
 
-    private void handleView()
-    {
-        String selected = categoryList.getSelectedValue();
-
-        if (selected == null)
-        {
-            JOptionPane.showMessageDialog(this, "Please select a category");
-            return;
-        }
-
-        int dashIndex = selected.indexOf(" - ");
-        int categoryID = Integer.parseInt(selected.substring(0, dashIndex));
-        String categoryName = selected.substring(dashIndex + 3);
-
-        this.dispose();
-        new CategoryBreakdownGUI(currentUserID, categoryID, categoryName).setVisible(true);
-    }
-
     private void handleDelete()
     {
-        String selected = categoryList.getSelectedValue();
+        int selectedIndex = categoryList.getSelectedIndex();
 
-        if (selected == null)
+        if (selectedIndex == -1)
         {
             JOptionPane.showMessageDialog(this, "Select a category first.");
             return;
         }
 
-        int id = Integer.parseInt(selected.split(" - ")[0]);
+        int categoryID = Integer.parseInt(currentCategories.get(selectedIndex)[0]);
 
-        categoryDB.deleteCategory(id);
-        refreshCategories();
+        boolean success = categoryDB.deleteCategory(categoryID);
+
+        if (success)
+        {
+            refreshCategories();
+        }
+        else
+        {
+            JOptionPane.showMessageDialog(this, "Delete failed.");
+        }
     }
 
     private void refreshCategories()
     {
         listModel.clear();
+        currentCategories = categoryDB.getCategoriesByUser(currentUserID);
 
-        ArrayList<String[]> categories = categoryDB.getCategoriesByUser(currentUserID);
-
-        for (String[] row : categories)
+        for (int i = 0; i < currentCategories.size(); i++)
         {
-            listModel.addElement(row[0] + " - " + row[1]);
+            String[] row = currentCategories.get(i);
+            String display = (i + 1) + ". " + row[1];
+            listModel.addElement(display);
         }
     }
 }

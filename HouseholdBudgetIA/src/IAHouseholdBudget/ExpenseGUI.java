@@ -18,6 +18,9 @@ public class ExpenseGUI extends JFrame implements ActionListener
     private DefaultListModel<String> listModel;
     private JList<String> expenseList;
 
+    private ArrayList<String[]> currentExpenses;
+    private ArrayList<String[]> currentCategories;
+
     public ExpenseGUI(int userID)
     {
         super("Expenses");
@@ -25,6 +28,8 @@ public class ExpenseGUI extends JFrame implements ActionListener
         this.currentUserID = userID;
         expenseDB = new ExpenseDBAccess();
         categoryDB = new CategoryDBAccess();
+        currentExpenses = new ArrayList<String[]>();
+        currentCategories = new ArrayList<String[]>();
 
         this.setSize(750, 750);
         this.setLocationRelativeTo(null);
@@ -46,7 +51,7 @@ public class ExpenseGUI extends JFrame implements ActionListener
 
         nameField = new JTextField(12);
         amountField = new JTextField(6);
-        categoryBox = new JComboBox<>();
+        categoryBox = new JComboBox<String>();
         loadCategories();
 
         JButton addBtn = createButton("Add");
@@ -67,8 +72,8 @@ public class ExpenseGUI extends JFrame implements ActionListener
 
         background.add(inputPanel, BorderLayout.SOUTH);
 
-        listModel = new DefaultListModel<>();
-        expenseList = new JList<>(listModel);
+        listModel = new DefaultListModel<String>();
+        expenseList = new JList<String>(listModel);
         JScrollPane scrollPane = new JScrollPane(expenseList);
         background.add(scrollPane, BorderLayout.CENTER);
 
@@ -79,7 +84,7 @@ public class ExpenseGUI extends JFrame implements ActionListener
     {
         JButton button = new JButton(text);
         button.setForeground(LoginGUI.DARK_BLUE);
-        button.setBackground(new Color(220, 235, 250));
+        button.setBackground(new Color(220,235,250));
         button.setFont(new Font("SansSerif", Font.BOLD, 14));
         button.setFocusPainted(false);
         button.setOpaque(true);
@@ -90,12 +95,13 @@ public class ExpenseGUI extends JFrame implements ActionListener
 
     private void loadCategories()
     {
-        ArrayList<String[]> categories = categoryDB.getCategoriesByUser(currentUserID);
         categoryBox.removeAllItems();
+        currentCategories = categoryDB.getCategoriesByUser(currentUserID);
 
-        for (String[] row : categories)
+        for (int i = 0; i < currentCategories.size(); i++)
         {
-            categoryBox.addItem(row[0] + " - " + row[1]);
+            String[] row = currentCategories.get(i);
+            categoryBox.addItem((i + 1) + ". " + row[1]);
         }
     }
 
@@ -103,19 +109,19 @@ public class ExpenseGUI extends JFrame implements ActionListener
     {
         String cmd = e.getActionCommand();
 
-        if (cmd.equals("Add"))
+        if(cmd.equals("Add"))
         {
             handleAdd();
         }
-        else if (cmd.equals("View"))
+        else if(cmd.equals("View"))
         {
             viewExpenses();
         }
-        else if (cmd.equals("Delete"))
+        else if(cmd.equals("Delete"))
         {
             handleDelete();
         }
-        else if (cmd.equals("Back"))
+        else if(cmd.equals("Back"))
         {
             this.dispose();
             new DashboardGUI(currentUserID).setVisible(true);
@@ -124,64 +130,50 @@ public class ExpenseGUI extends JFrame implements ActionListener
 
     private void handleAdd()
     {
-        String note = nameField.getText().trim();
-
-        if (note.isEmpty())
-        {
-            JOptionPane.showMessageDialog(this, "Enter an expense name.");
-            return;
-        }
-
-        String amountText = amountField.getText().trim();
-
-        if (amountText.isEmpty())
-        {
-            JOptionPane.showMessageDialog(this, "Enter an amount.");
-            return;
-        }
-
-        double amount;
-
         try
         {
-            amount = Double.parseDouble(amountText);
-        }
-        catch (NumberFormatException ex)
-        {
-            JOptionPane.showMessageDialog(this, "Enter a valid number for amount.");
-            return;
-        }
+            String note = nameField.getText().trim();
 
-        if (amount <= 0)
-        {
-            JOptionPane.showMessageDialog(this, "Amount must be greater than 0.");
-            return;
-        }
+            if (note.isEmpty())
+            {
+                JOptionPane.showMessageDialog(this, "Expense name cannot be empty.");
+                return;
+            }
 
-        String selected = (String) categoryBox.getSelectedItem();
+            String amountText = amountField.getText().trim();
 
-        if (selected == null)
-        {
-            JOptionPane.showMessageDialog(this, "Select a category first.");
-            return;
-        }
+            if (amountText.isEmpty())
+            {
+                JOptionPane.showMessageDialog(this, "Amount cannot be empty.");
+                return;
+            }
 
-        int categoryID;
+            double amount = Double.parseDouble(amountText);
 
-        try
-        {
-            categoryID = Integer.parseInt(selected.split(" - ")[0]);
-        }
-        catch (Exception ex)
-        {
-            JOptionPane.showMessageDialog(this, "Invalid category selected.");
-            return;
-        }
+            if (amount <= 0)
+            {
+                JOptionPane.showMessageDialog(this, "Amount must be greater than 0.");
+                return;
+            }
 
-        boolean success = expenseDB.insertExpense(note, amount, currentUserID, categoryID);
+            int selectedIndex = categoryBox.getSelectedIndex();
 
-        if (success)
-        {
+            if (selectedIndex == -1)
+            {
+                JOptionPane.showMessageDialog(this, "Select a category first.");
+                return;
+            }
+
+            int categoryID = Integer.parseInt(currentCategories.get(selectedIndex)[0]);
+
+            boolean success = expenseDB.insertExpense(note, amount, currentUserID, categoryID);
+
+            if (!success)
+            {
+                JOptionPane.showMessageDialog(this, "Expense could not be added.");
+                return;
+            }
+
             java.time.LocalDate today = java.time.LocalDate.now();
             int month = today.getMonthValue();
             int year = today.getYear();
@@ -209,25 +201,25 @@ public class ExpenseGUI extends JFrame implements ActionListener
             amountField.setText("");
             refreshExpenses();
         }
-        else
+        catch (NumberFormatException ex)
         {
-            JOptionPane.showMessageDialog(this, "Failed to add expense.");
+            JOptionPane.showMessageDialog(this, "Enter a valid amount.");
         }
     }
 
     private void handleDelete()
     {
-        String selected = expenseList.getSelectedValue();
+        int selectedIndex = expenseList.getSelectedIndex();
 
-        if (selected == null)
+        if(selectedIndex == -1)
         {
             JOptionPane.showMessageDialog(this, "Select an expense first.");
             return;
         }
 
-        int id = Integer.parseInt(selected.split(" - ")[0]);
+        int expenseID = Integer.parseInt(currentExpenses.get(selectedIndex)[0]);
 
-        boolean success = expenseDB.deleteExpense(id);
+        boolean success = expenseDB.deleteExpense(expenseID);
 
         if (success)
         {
@@ -235,33 +227,34 @@ public class ExpenseGUI extends JFrame implements ActionListener
         }
         else
         {
-            JOptionPane.showMessageDialog(this, "Failed to delete expense.");
+            JOptionPane.showMessageDialog(this, "Delete failed.");
         }
     }
 
     private void refreshExpenses()
     {
         listModel.clear();
+        currentExpenses = expenseDB.getExpensesByUser(currentUserID);
 
-        ArrayList<String[]> expenses = expenseDB.getExpensesByUser(currentUserID);
-
-        for (String[] row : expenses)
+        for(int i = 0; i < currentExpenses.size(); i++)
         {
-            listModel.addElement(row[0] + " - " + row[1] + " ($" + row[2] + ")");
+            String[] row = currentExpenses.get(i);
+            listModel.addElement((i + 1) + ". " + row[1] + " ($" + row[2] + ")");
         }
     }
 
     public void viewExpenses()
     {
-        String selected = expenseList.getSelectedValue();
+        int selectedIndex = expenseList.getSelectedIndex();
 
-        if (selected == null)
+        if (selectedIndex == -1)
         {
             JOptionPane.showMessageDialog(this, "Select an expense first.");
             return;
         }
 
-        int expenseID = Integer.parseInt(selected.split(" - ")[0]);
+        int expenseID = Integer.parseInt(currentExpenses.get(selectedIndex)[0]);
+
         String[] details = expenseDB.getExpenseDetails(expenseID);
 
         if (details != null)
