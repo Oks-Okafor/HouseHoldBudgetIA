@@ -23,19 +23,16 @@ public class SignupGUI extends JFrame implements ActionListener
 
         userDB = new UserDBAccess();
 
-        // Background (same as Login)
         JPanel background = new JPanel(new BorderLayout());
         background.setBackground(LoginGUI.LIGHT_BLUE_BG);
         this.setContentPane(background);
 
-        // Header (same styling)
         JLabel titleLabel = new JLabel("Household Budget Signup", SwingConstants.CENTER);
         titleLabel.setFont(new Font("SansSerif", Font.BOLD, 24));
         titleLabel.setForeground(LoginGUI.DARK_BLUE);
         titleLabel.setBorder(BorderFactory.createEmptyBorder(20, 0, 20, 0));
         background.add(titleLabel, BorderLayout.NORTH);
 
-        // Form panel (same layout style as login)
         JPanel formPanel = new JPanel(new FlowLayout(FlowLayout.CENTER, 20, 25));
         formPanel.setOpaque(false);
 
@@ -64,7 +61,6 @@ public class SignupGUI extends JFrame implements ActionListener
 
         background.add(formPanel, BorderLayout.CENTER);
 
-        // Buttons (same styling as login)
         JPanel buttonPanel = new JPanel(new FlowLayout());
         buttonPanel.setOpaque(false);
 
@@ -111,9 +107,21 @@ public class SignupGUI extends JFrame implements ActionListener
 
     private void handleSignup()
     {
-        String username = usernameField.getText();
-        String password = new String(passwordField.getPassword());
-        String email = emailField.getText();
+        String username = usernameField.getText().trim();
+        String password = new String(passwordField.getPassword()).trim();
+        String email = emailField.getText().trim();
+
+        if (username.isEmpty() || password.isEmpty() || email.isEmpty())
+        {
+            JOptionPane.showMessageDialog(this, "Fill in all fields.");
+            return;
+        }
+
+        if (!email.contains("@") || !email.contains("."))
+        {
+            JOptionPane.showMessageDialog(this, "Enter a valid email address.");
+            return;
+        }
 
         boolean success = userDB.insertUser(username, password, email);
 

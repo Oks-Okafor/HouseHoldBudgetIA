@@ -36,15 +36,13 @@ public class BudgetGUI extends JFrame implements ActionListener
         background.setBackground(LoginGUI.LIGHT_BLUE_BG);
         this.setContentPane(background);
 
-        // Header
         JLabel header = new JLabel("Monthly Budget", SwingConstants.CENTER);
         header.setFont(new Font("SansSerif", Font.BOLD, 24));
         header.setForeground(LoginGUI.DARK_BLUE);
         header.setBorder(BorderFactory.createEmptyBorder(20, 0, 20, 0));
         background.add(header, BorderLayout.NORTH);
 
-        // Center input panel
-        JPanel inputPanel = new JPanel(new GridLayout(4,2,10,10));
+        JPanel inputPanel = new JPanel(new GridLayout(4, 2, 10, 10));
         inputPanel.setOpaque(false);
         inputPanel.setBorder(BorderFactory.createEmptyBorder(30, 60, 30, 60));
 
@@ -66,7 +64,6 @@ public class BudgetGUI extends JFrame implements ActionListener
 
         background.add(inputPanel, BorderLayout.CENTER);
 
-        // Buttons
         JPanel buttonPanel = new JPanel();
         buttonPanel.setOpaque(false);
 
@@ -85,7 +82,7 @@ public class BudgetGUI extends JFrame implements ActionListener
     {
         JButton button = new JButton(text);
         button.setForeground(LoginGUI.DARK_BLUE);
-        button.setBackground(new Color(220,235,250));
+        button.setBackground(new Color(220, 235, 250));
         button.setFont(new Font("SansSerif", Font.BOLD, 14));
         button.setFocusPainted(false);
         button.setOpaque(true);
@@ -98,15 +95,15 @@ public class BudgetGUI extends JFrame implements ActionListener
     {
         String command = e.getActionCommand();
 
-        if(command.equals("Save Budget"))
+        if (command.equals("Save Budget"))
         {
             handleSave();
         }
-        else if(command.equals("Adjust Budget"))
+        else if (command.equals("Adjust Budget"))
         {
             handleView();
         }
-        else if(command.equals("Back"))
+        else if (command.equals("Back"))
         {
             this.dispose();
             new DashboardGUI(currentUserID).setVisible(true);
@@ -115,20 +112,68 @@ public class BudgetGUI extends JFrame implements ActionListener
 
     private void handleSave()
     {
-        int month = Integer.parseInt(monthField.getText());
-        int year = Integer.parseInt(yearField.getText());
-        double amount = Double.parseDouble(amountField.getText());
+        String monthText = monthField.getText().trim();
+        String yearText = yearField.getText().trim();
+        String amountText = amountField.getText().trim();
 
-        budgetDB.upsertBudget(currentUserID, month, year, amount);
- JOptionPane.showMessageDialog(this, "Budget saved successfully"); 
-        // show message if nothing is selected
-        return; 
-        // stop method
-           }
+        if (monthText.isEmpty() || yearText.isEmpty() || amountText.isEmpty())
+        {
+            JOptionPane.showMessageDialog(this, "Fill in all fields.");
+            return;
+        }
+
+        int month;
+        int year;
+        double amount;
+
+        try
+        {
+            month = Integer.parseInt(monthText);
+            year = Integer.parseInt(yearText);
+            amount = Double.parseDouble(amountText);
+        }
+        catch (NumberFormatException ex)
+        {
+            JOptionPane.showMessageDialog(this, "Enter valid numbers only.");
+            return;
+        }
+
+        if (month < 1 || month > 12)
+        {
+            JOptionPane.showMessageDialog(this, "Month must be between 1 and 12.");
+            return;
+        }
+
+        if (year <= 0)
+        {
+            JOptionPane.showMessageDialog(this, "Enter a valid year.");
+            return;
+        }
+
+        if (amount <= 0)
+        {
+            JOptionPane.showMessageDialog(this, "Budget amount must be greater than 0.");
+            return;
+        }
+
+        boolean success = budgetDB.upsertBudget(currentUserID, month, year, amount);
+
+        if (success)
+        {
+            JOptionPane.showMessageDialog(this, "Budget saved successfully");
+            monthField.setText("");
+            yearField.setText("");
+            amountField.setText("");
+        }
+        else
+        {
+            JOptionPane.showMessageDialog(this, "Failed to save budget.");
+        }
+    }
 
     private void handleView()
     {
-         new AdjustChoiceGUI(currentUserID).setVisible(true);
+        this.dispose();
+        new AdjustChoiceGUI(currentUserID).setVisible(true);
     }
 }
-
