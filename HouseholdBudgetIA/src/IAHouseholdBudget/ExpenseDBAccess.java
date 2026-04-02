@@ -4,31 +4,22 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.util.ArrayList; 
+import java.util.ArrayList;
 
-/*
- ExpenseDBAccess
- This class handles all database operations related to
- expenses recorded by a user.
- Each expense belongs to a user and a category.
- */
-public class ExpenseDBAccess {
-
-       /*
-     viewExpenses
-         Retrieves and displays all expense records from the database.
-     */
-    public void viewExpenses() {
-
+public class ExpenseDBAccess
+{
+    public void viewExpenses()
+    {
         String sql = "SELECT * FROM expense";
 
         try (
             Connection conn = DBManager.getDBConnection();
             PreparedStatement stmt = conn.prepareStatement(sql);
             ResultSet rs = stmt.executeQuery()
-        ) {
-            // Loop through each row in the result set
-            while (rs.next()) {
+        )
+        {
+            while (rs.next())
+            {
                 System.out.println(
                     rs.getInt("expenseID") + " | " +
                     "Amount: " + rs.getDouble("amount") + " | " +
@@ -40,209 +31,244 @@ public class ExpenseDBAccess {
                     "Category ID: " + rs.getInt("categoryID")
                 );
             }
-
-        } catch (SQLException e) {
+        }
+        catch (SQLException e)
+        {
             System.out.println("View expenses failed: " + e.getMessage());
         }
     }
 
-    /*
-     updateExpenseAmount
-         Updates the amount of an existing expense using its ID.
-     */
-    public boolean updateExpenseAmount(int expenseID, double newAmount) {
-
+    public boolean updateExpenseAmount(int expenseID, double newAmount)
+    {
         String sql = "UPDATE expense SET amount = ? WHERE expenseID = ?";
 
         try (
             Connection conn = DBManager.getDBConnection();
             PreparedStatement stmt = conn.prepareStatement(sql)
-        ) {
-            // Set new expense amount and expense ID
+        )
+        {
             stmt.setDouble(1, newAmount);
             stmt.setInt(2, expenseID);
-
-            // Execute UPDATE command
             stmt.executeUpdate();
             return true;
-
-        } catch (SQLException e) {
+        }
+        catch (SQLException e)
+        {
             System.out.println("Update expense failed: " + e.getMessage());
             return false;
         }
     }
 
- 
-public double getTotalExpensesForMonth(int userID, int month, int year)
-{
-    String sql = "SELECT SUM(amount) AS total FROM expense WHERE userID = ? AND month = ? AND year = ?";
-
-    try (Connection conn = DBManager.getDBConnection();
-         PreparedStatement stmt = conn.prepareStatement(sql))
+    public double getTotalExpensesForMonth(int userID, int month, int year)
     {
-        stmt.setInt(1, userID);
-        stmt.setInt(2, month);
-        stmt.setInt(3, year);
+        String sql = "SELECT SUM(amount) AS total FROM expense WHERE userID = ? AND month = ? AND year = ?";
 
-        ResultSet rs = stmt.executeQuery();
-
-        if (rs.next())
+        try (
+            Connection conn = DBManager.getDBConnection();
+            PreparedStatement stmt = conn.prepareStatement(sql)
+        )
         {
-            return rs.getDouble("total");
-        }
+            stmt.setInt(1, userID);
+            stmt.setInt(2, month);
+            stmt.setInt(3, year);
 
-    } catch (SQLException e)
-    {
-        System.out.println("Get expenses failed: " + e.getMessage());
-    }
+            ResultSet rs = stmt.executeQuery();
 
-    return 0;
-}
-public boolean insertExpense(String note, double amount, int userID, int categoryID)
-{
-    String sql = "INSERT INTO expense (note, amount, expenseDate, month, year, userID, categoryID) " +
-                 "VALUES (?, ?, CURDATE(), MONTH(CURDATE()), YEAR(CURDATE()), ?, ?)";
-
-    try (Connection conn = DBManager.getDBConnection();
-         PreparedStatement stmt = conn.prepareStatement(sql))
-    {
-        stmt.setString(1, note);
-        stmt.setDouble(2, amount);
-        stmt.setInt(3, userID);
-        stmt.setInt(4, categoryID);
-
-        stmt.executeUpdate();
-        return true;
-    }
-    catch (SQLException e)
-    {
-        System.out.println("Insert expense failed: " + e.getMessage());
-        return false;
-    }
-}
-public ArrayList<String[]> getExpensesByUser(int userID)
-{
-    ArrayList<String[]> list = new ArrayList<>();
-
-    String sql = "SELECT expenseID, note, amount FROM expense WHERE userID=?";
-
-    try (Connection conn = DBManager.getDBConnection();
-         PreparedStatement stmt = conn.prepareStatement(sql))
-    {
-        stmt.setInt(1, userID);
-        ResultSet rs = stmt.executeQuery();
-
-        while (rs.next())
-        {
-            String[] row =
+            if (rs.next())
             {
-                String.valueOf(rs.getInt("expenseID")),
-                rs.getString("note"),
-                String.valueOf(rs.getDouble("amount"))
-            };
-
-            list.add(row);
+                return rs.getDouble("total");
+            }
         }
-    }
-    catch (SQLException e)
-    {
-        System.out.println("Get expenses failed: " + e.getMessage());
-    }
-
-    return list;
-}
-public boolean deleteExpense(int expenseID)
-{
-    String sql = "DELETE FROM expense WHERE expenseID=?";
-
-    try (Connection conn = DBManager.getDBConnection();
-         PreparedStatement stmt = conn.prepareStatement(sql))
-    {
-        stmt.setInt(1, expenseID);
-        stmt.executeUpdate();
-        return true;
-    }
-    catch (SQLException e)
-    {
-        System.out.println("Delete expense failed: " + e.getMessage());
-        return false;
-    }
-}
-
-public String[] getExpenseDetails(int expenseID)
-{
-    // SQL query to get expense details + category name using a JOIN
-    String sql = "SELECT e.note, e.expenseDate, e.amount, c.categoryName " +
-                 "FROM expense e " +                 // alias 'e' represents expense table optimized with Chatgpt
-                 "JOIN category c ON e.categoryID = c.categoryID " + // connect expense to category  alias 'c' represents category table optimized with Chatgpt
-                 "WHERE e.expenseID = ?";            // only get the selected expense
-
-    // try-with-resources automatically closes connection and statement
-    try (Connection conn = DBManager.getDBConnection();   // connect to database
-         PreparedStatement stmt = conn.prepareStatement(sql)) // prepare SQL query safely
-    {
-        stmt.setInt(1, expenseID); // replace ? with actual expenseID
-
-        ResultSet rs = stmt.executeQuery(); // run the query and store results
-
-        // check if a result was found
-        if (rs.next())
+        catch (SQLException e)
         {
-            // store the result values into an array
-            String[] details = {
-                rs.getString("note"),           // get expense name (note)
-                rs.getString("expenseDate"),    // get date
-                String.valueOf(rs.getDouble("amount")), // get amount and convert to String
-                rs.getString("categoryName")    // get category name from joined table
-            };
+            System.out.println("Get expenses failed: " + e.getMessage());
+        }
 
-            return details; // return the details back to GUI
+        return 0;
+    }
+
+    public boolean insertExpense(String note, double amount, int userID, int categoryID)
+    {
+        String sql = "INSERT INTO expense (note, amount, expenseDate, month, year, userID, categoryID) " +
+                     "VALUES (?, ?, CURDATE(), MONTH(CURDATE()), YEAR(CURDATE()), ?, ?)";
+
+        try (
+            Connection conn = DBManager.getDBConnection();
+            PreparedStatement stmt = conn.prepareStatement(sql)
+        )
+        {
+            stmt.setString(1, note);
+            stmt.setDouble(2, amount);
+            stmt.setInt(3, userID);
+            stmt.setInt(4, categoryID);
+
+            stmt.executeUpdate();
+            return true;
+        }
+        catch (SQLException e)
+        {
+            System.out.println("Insert expense failed: " + e.getMessage());
+            return false;
         }
     }
-    catch (SQLException e) // catch any database errors
+
+    public ArrayList<String[]> getExpensesByUser(int userID)
     {
-        System.out.println("Get expense details failed: " + e.getMessage()); // print error
+        ArrayList<String[]> list = new ArrayList<>();
+
+        String sql = "SELECT expenseID, note, amount FROM expense WHERE userID = ?";
+
+        try (
+            Connection conn = DBManager.getDBConnection();
+            PreparedStatement stmt = conn.prepareStatement(sql)
+        )
+        {
+            stmt.setInt(1, userID);
+            ResultSet rs = stmt.executeQuery();
+
+            while (rs.next())
+            {
+                String[] row =
+                {
+                    String.valueOf(rs.getInt("expenseID")),
+                    rs.getString("note"),
+                    String.valueOf(rs.getDouble("amount"))
+                };
+
+                list.add(row);
+            }
+        }
+        catch (SQLException e)
+        {
+            System.out.println("Get expenses failed: " + e.getMessage());
+        }
+
+        return list;
     }
 
-    return null; // return null if no result found
-}
+    public boolean deleteExpense(int expenseID)
+    {
+        String sql = "DELETE FROM expense WHERE expenseID = ?";
 
-    /*
-      main
+        try (
+            Connection conn = DBManager.getDBConnection();
+            PreparedStatement stmt = conn.prepareStatement(sql)
+        )
+        {
+            stmt.setInt(1, expenseID);
+            stmt.executeUpdate();
+            return true;
+        }
+        catch (SQLException e)
+        {
+            System.out.println("Delete expense failed: " + e.getMessage());
+            return false;
+        }
+    }
 
-      Used to test all CRUD operations for the expense table.
-      This method runs on its own from other classes.
-     */
-    public static void main(String[] args) {
+    public String[] getExpenseDetails(int expenseID)
+    {
+        String sql = "SELECT e.note, e.expenseDate, e.amount, c.categoryName " +
+                     "FROM expense e " +
+                     "JOIN category c ON e.categoryID = c.categoryID " +
+                     "WHERE e.expenseID = ?";
 
-        // Ensure database and tables exist before testing
+        try (
+            Connection conn = DBManager.getDBConnection();
+            PreparedStatement stmt = conn.prepareStatement(sql)
+        )
+        {
+            stmt.setInt(1, expenseID);
+
+            ResultSet rs = stmt.executeQuery();
+
+            if (rs.next())
+            {
+                String[] details =
+                {
+                    rs.getString("note"),
+                    rs.getString("expenseDate"),
+                    String.valueOf(rs.getDouble("amount")),
+                    rs.getString("categoryName")
+                };
+
+                return details;
+            }
+        }
+        catch (SQLException e)
+        {
+            System.out.println("Get expense details failed: " + e.getMessage());
+        }
+
+        return null;
+    }
+
+    public ArrayList<String> getExpensesByCategory(int userID, int categoryID)
+    {
+        ArrayList<String> expenses = new ArrayList<>();
+
+        String sql = "SELECT note, amount, expenseDate FROM expense WHERE userID = ? AND categoryID = ?";
+
+        try (
+            Connection conn = DBManager.getDBConnection();
+            PreparedStatement stmt = conn.prepareStatement(sql)
+        )
+        {
+            stmt.setInt(1, userID);
+            stmt.setInt(2, categoryID);
+
+            ResultSet rs = stmt.executeQuery();
+
+            while (rs.next())
+            {
+                String name = rs.getString("note");
+                double amount = rs.getDouble("amount");
+                String date = rs.getString("expenseDate");
+
+                expenses.add(name + " - $" + amount + " - " + date);
+            }
+        }
+        catch (SQLException e)
+        {
+            System.out.println("Get expenses by category failed: " + e.getMessage());
+        }
+
+        return expenses;
+    }
+
+    public double getTotalForCategory(int userID, int categoryID)
+    {
+        double total = 0;
+
+        String sql = "SELECT SUM(amount) AS total FROM expense WHERE userID = ? AND categoryID = ?";
+
+        try (
+            Connection conn = DBManager.getDBConnection();
+            PreparedStatement stmt = conn.prepareStatement(sql)
+        )
+        {
+            stmt.setInt(1, userID);
+            stmt.setInt(2, categoryID);
+
+            ResultSet rs = stmt.executeQuery();
+
+            if (rs.next())
+            {
+                total = rs.getDouble("total");
+            }
+        }
+        catch (SQLException e)
+        {
+            System.out.println("Get category total failed: " + e.getMessage());
+        }
+
+        return total;
+    }
+
+    public static void main(String[] args)
+    {
         DBManager.initialize();
-
         ExpenseDBAccess expenseDB = new ExpenseDBAccess();
-
-        // Insert test data
-        System.out.println("Inserting expenses...");
-        expenseDB.insertExpense(45.50, "2025-09-10", "Groceries at store", 9, 2025, 1, 1);
-        expenseDB.insertExpense(120.00, "2025-09-12", "Electric bill", 9, 2025, 1, 1);
-
-        // View expenses
-        System.out.println("\nViewing expenses:");
-        expenseDB.viewExpenses();
-
-        // Update an expense amount
-        System.out.println("\nUpdating expense...");
-        expenseDB.updateExpenseAmount(1, 50.00);
-
-        // View after update
-        System.out.println("\nViewing expenses after update:");
-        expenseDB.viewExpenses();
-
-        // Delete an expense
-        System.out.println("\nDeleting expense...");
-        expenseDB.deleteExpense(2);
-
-        // Final view
-        System.out.println("\nViewing expenses after delete:");
         expenseDB.viewExpenses();
     }
 }

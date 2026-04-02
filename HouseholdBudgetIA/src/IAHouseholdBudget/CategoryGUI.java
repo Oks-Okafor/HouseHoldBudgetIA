@@ -1,10 +1,24 @@
 package IAHouseholdBudget;
 
-import java.awt.*;
+import java.awt.BorderLayout;
+import java.awt.Color;
+import java.awt.Font;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.util.ArrayList;
-import javax.swing.*;
+import javax.swing.BorderFactory;
+import javax.swing.JButton;
+import javax.swing.JFrame;
+import javax.swing.JLabel;
+import javax.swing.JList;
+import javax.swing.JOptionPane;
+import javax.swing.JPanel;
+import javax.swing.JScrollPane;
+import javax.swing.JTextField;
+import javax.swing.ListSelectionModel;
+import javax.swing.DefaultListModel;
+import javax.swing.SwingConstants;
+import java.awt.FlowLayout;
 
 public class CategoryGUI extends JFrame implements ActionListener
 {
@@ -32,23 +46,19 @@ public class CategoryGUI extends JFrame implements ActionListener
         this.setDefaultCloseOperation(EXIT_ON_CLOSE);
         this.setLayout(new BorderLayout());
 
-        // Background panel
         JPanel background = new JPanel(new BorderLayout());
         background.setBackground(LoginGUI.LIGHT_BLUE_BG);
         this.setContentPane(background);
 
-        // ================= HEADER =================
         JLabel header = new JLabel("Manage Categories", SwingConstants.CENTER);
         header.setFont(new Font("SansSerif", Font.BOLD, 26));
         header.setForeground(LoginGUI.DARK_BLUE);
         header.setBorder(BorderFactory.createEmptyBorder(25, 0, 25, 0));
         background.add(header, BorderLayout.NORTH);
 
-        // ================= CENTER PANEL =================
         JPanel centerPanel = new JPanel(new BorderLayout());
         centerPanel.setOpaque(false);
 
-        // ----- Top Input Panel -----
         JPanel topPanel = new JPanel(new FlowLayout());
         topPanel.setOpaque(false);
 
@@ -66,7 +76,6 @@ public class CategoryGUI extends JFrame implements ActionListener
 
         centerPanel.add(topPanel, BorderLayout.NORTH);
 
-        // ----- Category List -----
         listModel = new DefaultListModel<>();
         categoryList = new JList<>(listModel);
         categoryList.setFont(new Font("SansSerif", Font.PLAIN, 15));
@@ -77,7 +86,6 @@ public class CategoryGUI extends JFrame implements ActionListener
 
         background.add(centerPanel, BorderLayout.CENTER);
 
-        // ================= BOTTOM PANEL =================
         JPanel bottomPanel = new JPanel();
         bottomPanel.setOpaque(false);
 
@@ -86,11 +94,9 @@ public class CategoryGUI extends JFrame implements ActionListener
 
         background.add(bottomPanel, BorderLayout.SOUTH);
 
-        // Load categories immediately
         refreshCategories();
     }
 
-    // ================= BUTTON CREATOR =================
     private JButton createButton(String text)
     {
         JButton button = new JButton(text);
@@ -104,7 +110,6 @@ public class CategoryGUI extends JFrame implements ActionListener
         return button;
     }
 
-    // ================= ACTION LISTENER =================
     public void actionPerformed(ActionEvent e)
     {
         String command = e.getActionCommand();
@@ -115,7 +120,7 @@ public class CategoryGUI extends JFrame implements ActionListener
         }
         else if (command.equals("View"))
         {
-            refreshCategories();
+            handleView();
         }
         else if (command.equals("Delete"))
         {
@@ -128,7 +133,6 @@ public class CategoryGUI extends JFrame implements ActionListener
         }
     }
 
-    // ================= HANDLE ADD =================
     private void handleAdd()
     {
         String name = categoryField.getText().trim();
@@ -152,7 +156,24 @@ public class CategoryGUI extends JFrame implements ActionListener
         }
     }
 
-    // ================= HANDLE DELETE =================
+    private void handleView()
+    {
+        String selected = categoryList.getSelectedValue();
+
+        if (selected == null)
+        {
+            JOptionPane.showMessageDialog(this, "Please select a category");
+            return;
+        }
+
+        int dashIndex = selected.indexOf(" - ");
+        int categoryID = Integer.parseInt(selected.substring(0, dashIndex));
+        String categoryName = selected.substring(dashIndex + 3);
+
+        this.dispose();
+        new CategoryBreakdownGUI(currentUserID, categoryID, categoryName).setVisible(true);
+    }
+
     private void handleDelete()
     {
         String selected = categoryList.getSelectedValue();
@@ -169,7 +190,6 @@ public class CategoryGUI extends JFrame implements ActionListener
         refreshCategories();
     }
 
-    // ================= REFRESH LIST =================
     private void refreshCategories()
     {
         listModel.clear();
@@ -178,8 +198,7 @@ public class CategoryGUI extends JFrame implements ActionListener
 
         for (String[] row : categories)
         {
-            String display = row[0] + " - " + row[1];
-            listModel.addElement(display);
+            listModel.addElement(row[0] + " - " + row[1]);
         }
     }
 }
